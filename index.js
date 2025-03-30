@@ -2,8 +2,8 @@ const express = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-// const routerAuth = require("./routes/auth.routes");
 const path = require("path");
+const routerAuth = require("./src/routes/auth.routes");
 const { PORT } = require("./src/config");
 
 const app = express();
@@ -24,9 +24,10 @@ app.use(
 );
 
 // For static files (images, CSS, etc.)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Routes
+app.use("/auth", routerAuth);
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
