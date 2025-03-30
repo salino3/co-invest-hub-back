@@ -1,0 +1,33 @@
+const express = require("express");
+const morgan = require("morgan");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+// const routerAuth = require("./routes/auth.routes");
+const path = require("path");
+const { PORT } = require("./src/config");
+
+const app = express();
+
+// 'morgan' Library to check API call, some information, milliseconds also
+app.use(morgan("dev"));
+app.use(cookieParser());
+app.use(express.json());
+
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? process.env.FRONT_END_PORT
+        : "http://localhost:7700",
+    credentials: true,
+  })
+);
+
+// For static files (images, CSS, etc.)
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Routes
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
+});
