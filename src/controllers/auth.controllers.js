@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { SECRET_KEY } = require("../config");
 
+//
 const registerAccount = async (req, res) => {
   const { name, email, password, passwordConfirm, age } = req.body;
 
@@ -37,6 +38,7 @@ const registerAccount = async (req, res) => {
   }
 };
 
+//
 const loginAccount = async (req, res) => {
   const { email, password: psw } = req.body;
 
