@@ -4,6 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const routerAuth = require("./src/routes/auth.routes");
+const routerCompanies = require("./src/routes/companies.routes");
 const { PORT } = require("./src/config");
 
 const app = express();
@@ -28,6 +29,7 @@ app.use(
 
 // Routes
 app.use("/auth", routerAuth);
+app.use("/api", routerCompanies);
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
