@@ -104,4 +104,65 @@ const getBatchCompanies = async (req, res) => {
   }
 };
 
-module.exports = { createCompany, getCompanies, getBatchCompanies };
+const getCompanyById = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return res.status(400).send("Invalid company ID.");
+    }
+
+    const query = "SELECT * FROM companies WHERE id = $1";
+    const result = await pool.query(query, [parsedId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).send("Company not found.");
+    }
+
+    return res.status(200).send(result.rows[0]);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error retrieving company");
+  }
+};
+
+const updateCompany = async (req, res) => {
+  return "";
+};
+
+const deleteCompany = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return res.status(400).send("Invalid company ID.");
+    }
+
+    const deleteQuery = `
+        DELETE FROM companies 
+        WHERE id = $1
+      `;
+
+    const result = await pool.query(deleteQuery, [parsedId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send("Company not found.");
+    }
+
+    return res.status(200).send("Company deleted successfully.");
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error deleting company.");
+  }
+};
+
+module.exports = {
+  createCompany,
+  getCompanies,
+  getBatchCompanies,
+  getCompanyById,
+  updateCompany,
+  deleteCompany,
+};

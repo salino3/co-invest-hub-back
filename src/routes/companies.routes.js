@@ -1,12 +1,18 @@
 const express = require("express");
 const companiesController = require("../controllers/companies.controllers");
 
-const routeCompanies = express.Router();
+const routerCompanies = express.Router();
 
-routeCompanies.post("/companies", companiesController?.createCompany);
+routerCompanies.post("/companies", companiesController?.createCompany);
 
-routeCompanies.get("/companies", companiesController?.getCompanies);
+routerCompanies.get("/companies", companiesController?.getCompanies);
 
-routeCompanies.get("/companies/batch", companiesController?.getBatchCompanies);
+routerCompanies.get("/companies/batch", companiesController?.getBatchCompanies);
 
-module.exports = routeCompanies;
+routerCompanies.get("/companies/:id", companiesController?.getCompanyById);
+
+routerCompanies.put("/companies/:id", companiesController?.updateCompany);
+
+routerCompanies.delete("/companies/:id", companiesController?.deleteCompany);
+
+module.exports = routerCompanies;
