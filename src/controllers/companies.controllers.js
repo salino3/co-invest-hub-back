@@ -130,7 +130,7 @@ const getCompanyById = async (req, res) => {
 
 //
 const updateCompany = async (req, res) => {
-  const { id } = req.params;
+  const { id } = req.params; // Assuming the company ID is passed as a route parameter
   const {
     name,
     description,
@@ -140,84 +140,86 @@ const updateCompany = async (req, res) => {
     investment_min,
     investment_max,
     contacts,
-    logo,
     multimedia,
+    logo,
   } = req.body;
 
   try {
-    const updates = [];
+    // Check if the company ID is provided
+    if (!id) {
+      return res.status(400).send("Missing company ID");
+    }
+
+    const updates = {};
     const values = [];
-    let paramIndex = 1;
+    let paramCount = 1;
 
     if (name !== undefined) {
-      updates.push(`name = $${paramIndex++}`);
+      updates.name = `$${paramCount++}`;
       values.push(name);
     }
     if (description !== undefined) {
-      updates.push(`description = $${paramIndex++}`);
+      updates.description = `$${paramCount++}`;
       values.push(description);
     }
     if (hashtags !== undefined) {
-      updates.push(`hashtags = $${paramIndex++}`);
-      values.push(hashtags);
+      updates.hashtags = `$${paramCount++}::jsonb`;
+      values.push(JSON.stringify(hashtags));
     }
     if (sector !== undefined) {
-      updates.push(`sector = $${paramIndex++}`);
+      updates.sector = `$${paramCount++}`;
       values.push(sector);
     }
     if (location !== undefined) {
-      updates.push(`location = $${paramIndex++}`);
+      updates.location = `$${paramCount++}`;
       values.push(location);
     }
     if (investment_min !== undefined) {
-      updates.push(`investment_min = $${paramIndex++}`);
+      updates.investment_min = `$${paramCount++}`;
       values.push(investment_min);
     }
     if (investment_max !== undefined) {
-      updates.push(`investment_max = $${paramIndex++}`);
+      updates.investment_max = `$${paramCount++}`;
       values.push(investment_max);
     }
     if (contacts !== undefined) {
-      updates.push(`contacts = $${paramIndex++}`);
-      values.push(contacts);
-    }
-    if (logo !== undefined) {
-      updates.push(`logo = $${paramIndex++}`);
-      values.push(logo);
+      updates.contacts = `$${paramCount++}::jsonb`;
+      values.push(JSON.stringify(contacts));
     }
     if (multimedia !== undefined) {
-      updates.push(`multimedia = $${paramIndex++}`);
-      values.push(multimedia);
+      updates.multimedia = `$${paramCount++}::jsonb`;
+      values.push(JSON.stringify(multimedia));
+    }
+    if (logo !== undefined) {
+      updates.logo = `$${paramCount++}`;
+      values.push(logo);
     }
 
-    if (updates.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "No fields were provided for updating." });
+    if (Object.keys(updates).length === 0) {
+      return res.status(200).send("No fields to update");
     }
+
+    const setClauses = Object.keys(updates)
+      .map((key) => `${key} = ${updates[key]}`)
+      .join(", ");
 
     const query = `
-      UPDATE companies
-      SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $${paramIndex}
-      RETURNING *;
-    `;
+        UPDATE companies
+        SET ${setClauses}, updated_at = NOW()
+        WHERE id = $${paramCount}
+      `;
     values.push(id);
 
     const result = await pool.query(query, values);
 
-    if (result.rows.length === 0) {
-      return res
-        .status(404)
-        .json({ message: `No company found with the ID: ${id}` });
+    if (result.rowCount === 0) {
+      return res.status(404).send(`Company with ID ${id} not found`);
     }
 
-    res.status(200).json(result.rows[0]);
+    return res.status(200).send(`Company with ID ${id} updated successfully`);
   } catch (error) {
-    console.error("Error updating the company:", error);
-    res
-      .status(500)
-      .json({ error: "Error updating the company in the database." });
+    console.error(error);
+    return res.status(500).send("Error updating company");
   }
 };
 
