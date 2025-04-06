@@ -26,7 +26,8 @@ const createCompany = async (req, res) => {
     const multimediaString = JSON.stringify(multimedia);
 
     await pool.query(
-      "INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo) VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9::jsonb, $10)",
+      `INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo)
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
       [
         name,
         description,
@@ -127,10 +128,100 @@ const getCompanyById = async (req, res) => {
   }
 };
 
+//
 const updateCompany = async (req, res) => {
-  return "";
+  const { id } = req.params;
+  const {
+    name,
+    description,
+    hashtags,
+    sector,
+    location,
+    investment_min,
+    investment_max,
+    contacts,
+    logo,
+    multimedia,
+  } = req.body;
+
+  try {
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (name !== undefined) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (hashtags !== undefined) {
+      updates.push(`hashtags = $${paramIndex++}`);
+      values.push(hashtags);
+    }
+    if (sector !== undefined) {
+      updates.push(`sector = $${paramIndex++}`);
+      values.push(sector);
+    }
+    if (location !== undefined) {
+      updates.push(`location = $${paramIndex++}`);
+      values.push(location);
+    }
+    if (investment_min !== undefined) {
+      updates.push(`investment_min = $${paramIndex++}`);
+      values.push(investment_min);
+    }
+    if (investment_max !== undefined) {
+      updates.push(`investment_max = $${paramIndex++}`);
+      values.push(investment_max);
+    }
+    if (contacts !== undefined) {
+      updates.push(`contacts = $${paramIndex++}`);
+      values.push(contacts);
+    }
+    if (logo !== undefined) {
+      updates.push(`logo = $${paramIndex++}`);
+      values.push(logo);
+    }
+    if (multimedia !== undefined) {
+      updates.push(`multimedia = $${paramIndex++}`);
+      values.push(multimedia);
+    }
+
+    if (updates.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No fields were provided for updating." });
+    }
+
+    const query = `
+      UPDATE companies
+      SET ${updates.join(", ")}, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $${paramIndex}
+      RETURNING *;
+    `;
+    values.push(id);
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res
+        .status(404)
+        .json({ message: `No company found with the ID: ${id}` });
+    }
+
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error("Error updating the company:", error);
+    res
+      .status(500)
+      .json({ error: "Error updating the company in the database." });
+  }
 };
 
+//
 const deleteCompany = async (req, res) => {
   const { id } = req.params;
 
