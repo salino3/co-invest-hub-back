@@ -13,7 +13,7 @@ const createCompany = async (req, res) => {
       investment_min,
       investment_max,
       contacts,
-      multimedia = {},
+      multimedia = [],
       logo,
     } = req.body;
 
@@ -22,18 +22,21 @@ const createCompany = async (req, res) => {
       return res.status(400).send("Missing required fields");
     }
 
+    const hashtagsString = JSON.stringify(hashtags);
+    const multimediaString = JSON.stringify(multimedia);
+
     await pool.query(
-      "INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+      "INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo) VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9::jsonb, $10)",
       [
         name,
         description,
-        hashtags,
+        hashtagsString,
         sector,
         location,
         investment_min,
         investment_max,
         contacts,
-        multimedia,
+        multimediaString,
         logo,
       ]
     );

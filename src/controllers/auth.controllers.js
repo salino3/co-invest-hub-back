@@ -26,9 +26,11 @@ const registerAccount = async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
 
+    const favorites = JSON.stringify([]);
+
     await pool.query(
       "INSERT INTO accounts (name, email, password, age, role_user, favorites) VALUES ($1, $2, $3, $4, $5, $6)",
-      [name, email, hashedPassword, age, "user", "{}"]
+      [name, email, hashedPassword, age, "user", favorites]
     );
 
     return res.send("Account registered successfully");
