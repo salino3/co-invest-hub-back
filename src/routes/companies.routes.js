@@ -7,4 +7,6 @@ routeCompanies.post("/companies", companiesController?.createCompany);
 
 routeCompanies.get("/companies", companiesController?.getCompanies);
 
+routeCompanies.get("/companies/batch", companiesController?.getBatchCompanies);
+
 module.exports = routeCompanies;
