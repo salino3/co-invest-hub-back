@@ -130,7 +130,7 @@ const getCompanyById = async (req, res) => {
 
 //
 const updateCompany = async (req, res) => {
-  const { id } = req.params; // Assuming the company ID is passed as a route parameter
+  const { id } = req.params;
   const {
     name,
     description,
