@@ -89,7 +89,8 @@ const getAccountsById = async (req, res) => {
 
 //
 const updateAccount = async (req, res) => {
-  const { id } = req.params;
+  // const {id} = req;
+  const { id, emailParams } = req.params;
   const { name, email, age } = req.body;
 
   try {
@@ -97,42 +98,66 @@ const updateAccount = async (req, res) => {
       return res.status(400).send("Missing account ID");
     }
 
-    const updates = {};
-    const values = [];
+    const { rows: existingAccount } = await pool.query(
+      `SELECT * FROM accounts WHERE email = $1 AND is_active = true`,
+      [email || emailParams]
+    );
+
+    if (email && !existingAccount[0]) {
+      return res.status(404).send("Account not found.");
+    }
+
+    if (
+      existingAccount[0] &&
+      existingAccount[0]?.email === email &&
+      id != existingAccount[0].id
+    ) {
+      return res.status(400).send({ message: "Email is already in use." });
+    }
+
+    const setClauses = [];
+    const valuesToUpdate = [];
     let paramCount = 1;
 
-    if (name !== undefined) {
-      updates.name = `$${paramCount++}`;
-      values.push(name);
+    if (name && name !== existingAccount[0]?.name) {
+      setClauses.push(`name = $${paramCount}`);
+      valuesToUpdate.push(name);
+      paramCount++;
     }
 
-    if (age && age !== undefined && age !== null) {
-      updates.age = `$${paramCount++}`;
-      values.push(age);
+    if (email && email !== existingAccount[0]?.email) {
+      setClauses.push(`email = $${paramCount}`);
+      valuesToUpdate.push(email);
+      paramCount++;
     }
 
-    if (Object.keys(updates).length === 0) {
-      return res.status(200).send("No fields to update");
+    if (age !== undefined && age !== null && age !== existingAccount[0]?.age) {
+      setClauses.push(`age = $${paramCount}`);
+      valuesToUpdate.push(age);
+      paramCount++;
     }
 
-    const setClauses = Object.keys(updates)
-      .map((key) => `${key} = ${updates[key]}`)
-      .join(", ");
-
-    const query = `
-      UPDATE accounts
-      SET ${setClauses}, updated_at = NOW()
-      WHERE is_active = true AND id = $${paramCount}
-    `;
-    values.push(id);
-
-    const result = await pool.query(query, values);
-
-    if (result.rowCount === 0) {
-      return res.status(404).send(`Account with ID ${id} not found`);
+    if (setClauses.length === 0) {
+      return res.status(400).send({
+        message: "No valid fields provided to update, or no changes detected",
+      });
     }
 
-    return res.status(200).send(`Account with ID ${id} updated successfully`);
+    valuesToUpdate.push(id);
+
+    const sqlQuery = `
+    UPDATE accounts
+    SET ${setClauses}, updated_at = NOW()
+    WHERE is_active = true AND id = $${paramCount}
+  `;
+
+    const result = await pool.query(sqlQuery, valuesToUpdate);
+
+    if (result.rowCount && result.rowCount > 0) {
+      return res.status(200).send({ message: "Account updated successfully." });
+    } else {
+      return res.status(404).send({ message: "Account not found." });
+    }
   } catch (error) {
     console.error(error);
     return res.status(500).send("Error updating account");
@@ -143,4 +168,5 @@ module.exports = {
   getAccounts,
   getBatchAccounts,
   getAccountsById,
+  updateAccount,
 };

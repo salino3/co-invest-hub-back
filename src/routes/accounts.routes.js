@@ -9,4 +9,9 @@ routerAccounts.get("/accounts/batch", accountsController?.getBatchAccounts);
 
 routerAccounts.get("/accounts/:id", accountsController?.getAccountsById);
 
+routerAccounts.put(
+  "/accounts/:id/:emailParams",
+  accountsController?.updateAccount
+);
+
 module.exports = routerAccounts;
