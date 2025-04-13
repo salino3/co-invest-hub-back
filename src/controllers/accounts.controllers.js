@@ -87,6 +87,58 @@ const getAccountsById = async (req, res) => {
   }
 };
 
+//
+const updateAccount = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, age } = req.body;
+
+  try {
+    if (!id) {
+      return res.status(400).send("Missing account ID");
+    }
+
+    const updates = {};
+    const values = [];
+    let paramCount = 1;
+
+    if (name !== undefined) {
+      updates.name = `$${paramCount++}`;
+      values.push(name);
+    }
+
+    if (age && age !== undefined && age !== null) {
+      updates.age = `$${paramCount++}`;
+      values.push(age);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.status(200).send("No fields to update");
+    }
+
+    const setClauses = Object.keys(updates)
+      .map((key) => `${key} = ${updates[key]}`)
+      .join(", ");
+
+    const query = `
+      UPDATE accounts
+      SET ${setClauses}, updated_at = NOW()
+      WHERE is_active = true AND id = $${paramCount}
+    `;
+    values.push(id);
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount === 0) {
+      return res.status(404).send(`Account with ID ${id} not found`);
+    }
+
+    return res.status(200).send(`Account with ID ${id} updated successfully`);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error updating account");
+  }
+};
+
 module.exports = {
   getAccounts,
   getBatchAccounts,
