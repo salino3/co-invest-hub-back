@@ -1,6 +1,10 @@
 const { pool } = require("../db");
 
 const registerRelationAccountCompanies = async (req, res) => {
+  try {
+    const { account_id, company_id, rol } = req.body;
+  } catch (error) {}
+
   return;
 };
 
