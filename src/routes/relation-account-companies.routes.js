@@ -13,7 +13,7 @@ routerRelationAccountCompanies.get(
   relationAccountCompaniesController?.getRelationAccountCompanies
 );
 
-routerRelationAccountCompanies.put(
+routerRelationAccountCompanies.patch(
   "/account/companies",
   relationAccountCompaniesController.updateRelationAccountCompanies
 );

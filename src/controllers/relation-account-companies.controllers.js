@@ -73,7 +73,31 @@ const getRelationAccountCompanies = async (req, res) => {
 };
 
 const updateRelationAccountCompanies = async (req, res) => {
-  return;
+  try {
+    const { account_id, company_id, newRol } = req.body;
+
+    if (!account_id || !company_id || !newRol) {
+      return res.status(400).send("Missing required fields");
+    }
+
+    // Update the rol for a specific account-company relation
+    const result = await pool.query(
+      `UPDATE account_companies 
+       SET rol = $1 
+       WHERE account_id = $2 AND company_id = $3`,
+      [newRol, account_id, company_id]
+    );
+
+    // If no rows were affected, the relation does not exist
+    if (result.rowCount === 0) {
+      return res.status(404).send("Relation not found");
+    }
+
+    return res.status(200).send("Role updated successfully");
+  } catch (error) {
+    console.error("Error updating role:", error);
+    return res.status(500).send("Error updating relation");
+  }
 };
 
 const deleteRelationAccountCompanies = async (req, res) => {
