@@ -163,9 +163,37 @@ const updateAccount = async (req, res) => {
   }
 };
 
+const softDeleteAccount = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const parsedId = parseInt(id, 10);
+    if (isNaN(parsedId)) {
+      return res.status(400).send("Invalid account ID.");
+    }
+
+    const result = await pool.query(
+      `UPDATE accounts SET is_active = false, updated_at = NOW() WHERE id = $1 AND is_active = true`,
+      [parsedId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).send("Account not found or already deactivated.");
+    }
+
+    return res
+      .status(200)
+      .send({ message: "Account deactivated successfully." });
+  } catch (error) {
+    console.error("Error in softDeleteAccount:", error);
+    return res.status(500).send("Error deactivating account.");
+  }
+};
+
 module.exports = {
   getAccounts,
   getBatchAccounts,
   getAccountsById,
   updateAccount,
+  softDeleteAccount,
 };

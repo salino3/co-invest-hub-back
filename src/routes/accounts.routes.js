@@ -14,4 +14,9 @@ routerAccounts.put(
   accountsController?.updateAccount
 );
 
+routerAccounts.patch(
+  "/accounts/:id/deactivate",
+  accountsController.softDeleteAccount
+);
+
 module.exports = routerAccounts;
