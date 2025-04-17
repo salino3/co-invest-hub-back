@@ -41,7 +41,7 @@ const createCompany = async (req, res) => {
       ]
     );
 
-    return res.status(201).json({ id: result.rows[0].id });
+    return res.status(201).json({ company_id: result.rows[0].id });
   } catch (error) {
     console.error(error);
     return res.status(500).send("Error creating company");
