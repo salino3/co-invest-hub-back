@@ -1,5 +1,4 @@
 const { pool } = require("../db");
-const { SECRET_KEY } = require("../config");
 
 const getAccounts = async (req, res) => {
   try {
