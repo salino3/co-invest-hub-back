@@ -8,6 +8,7 @@ const registerRelationAccountCompanies = async (req, res) => {
       return res.status(400).send("Missing required fields");
     }
 
+    //* Created index for this sql sentence
     // Check if there is already any relation with the given company
     const existingRelations = await pool.query(
       `SELECT * FROM account_companies WHERE company_id = $1`,
@@ -101,7 +102,30 @@ const updateRelationAccountCompanies = async (req, res) => {
 };
 
 const deleteRelationAccountCompanies = async (req, res) => {
-  return;
+  try {
+    const { account_id, company_id } = req.body;
+
+    // Validate if the necessary parameters are present
+    if (!account_id || !company_id) {
+      return res.status(400).send("Missing account_id or company_id");
+    }
+
+    // Delete the relation between the account and the company
+    const result = await pool.query(
+      `DELETE FROM account_companies WHERE account_id = $1 AND company_id = $2`,
+      [account_id, company_id]
+    );
+
+    // If no rows were deleted, it means the relation was not found
+    if (result.rowCount === 0) {
+      return res.status(404).send("Relation not found");
+    }
+
+    return res.status(200).send("Relation deleted successfully");
+  } catch (error) {
+    console.error("Error deleting relation:", error);
+    return res.status(500).send("Error deleting relation");
+  }
 };
 
 module.exports = {
