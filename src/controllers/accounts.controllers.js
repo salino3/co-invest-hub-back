@@ -10,7 +10,7 @@ const getAccounts = async (req, res) => {
       return res.status(404).send("No users found.");
     }
 
-    const accounts = result.rows.map(({ password, ...account }) => {
+    const accounts = result.rows.map(({ password, is_active, ...account }) => {
       return account;
     });
 
@@ -51,7 +51,7 @@ const getBatchAccounts = async (req, res) => {
       return res.status(404).send("No accounts found.");
     }
 
-    const accounts = result.rows.map(({ password, ...account }) => {
+    const accounts = result.rows.map(({ password, is_active, ...account }) => {
       return account;
     });
     return res.status(200).send(accounts);
@@ -77,7 +77,7 @@ const getAccountsById = async (req, res) => {
       return res.status(404).send("Account not found.");
     }
 
-    const { password, ...account } = result.rows[0];
+    const { password, is_active, ...account } = result.rows[0];
 
     return res.status(200).send(account);
   } catch (error) {
