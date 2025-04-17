@@ -26,13 +26,19 @@ const getRelationAccountCompanies = async (req, res) => {
     const { id: account_id } = req.params;
 
     const result = await pool.query(
-      `SELECT company_id FROM account_companies WHERE account_id = $1`,
+      `SELECT c.id, c.name 
+       FROM account_companies ac
+       JOIN companies c ON ac.company_id = c.id
+       WHERE ac.account_id = $1`,
       [account_id]
     );
 
-    const companyIds = result.rows.map((row) => row.company_id);
+    const companies = result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+    }));
 
-    return res.status(200).json({ companyIds });
+    return res.status(200).json(companies);
   } catch (error) {
     console.error("Error fetching related companies:", error);
     return res.status(500).send("Error retrieving company relations");
