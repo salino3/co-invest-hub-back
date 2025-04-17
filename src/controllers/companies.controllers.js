@@ -24,9 +24,9 @@ const createCompany = async (req, res) => {
     const hashtagsString = JSON.stringify(hashtags);
     const multimediaString = JSON.stringify(multimedia);
 
-    await pool.query(
+    const result = await pool.query(
       `INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo)
-       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9::jsonb, $10)`,
+       VALUES ($1, $2, $3::jsonb, $4, $5, $6, $7, $8, $9::jsonb, $10) RETURNING id`,
       [
         name,
         description,
@@ -41,7 +41,7 @@ const createCompany = async (req, res) => {
       ]
     );
 
-    return res.status(201).send("Company created successfully");
+    return res.status(201).json({ company_id: result.rows[0].id });
   } catch (error) {
     console.error(error);
     return res.status(500).send("Error creating company");
