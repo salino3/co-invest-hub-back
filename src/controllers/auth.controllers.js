@@ -59,7 +59,7 @@ const loginAccount = async (req, res) => {
       return res.status(401).send("Invalid password");
     }
 
-    const { password, ...account } = user;
+    const { password, favorites, role_user, ...account } = user;
 
     // Generate token
     const token = jwt.sign(account, SECRET_KEY, {
@@ -77,9 +77,7 @@ const loginAccount = async (req, res) => {
       expires: new Date(Date.now() + 3600 * 1000),
     });
 
-    return res.json({
-      message: "Login successful",
-    });
+    return res.json(account);
   } catch (err) {
     console.error(err);
     return res.status(500).send("Error during login");
