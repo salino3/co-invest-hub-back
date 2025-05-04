@@ -7,6 +7,7 @@ const routerAuth = require("./src/routes/auth.routes");
 const routerAccounts = require("./src/routes/accounts.routes");
 const routerCompanies = require("./src/routes/companies.routes");
 const routerRelationAccountCompanies = require("./src/routes/relation-account-companies.routes");
+const routerFavorites = require("./src/routes/favorites.routes");
 const { PORT } = require("./src/config");
 
 const app = express();
@@ -33,6 +34,7 @@ app.use(
 app.use("/auth", routerAuth);
 app.use("/api", routerAccounts);
 app.use("/api", routerCompanies);
+app.use("/api", routerFavorites);
 app.use("/relation", routerRelationAccountCompanies);
 
 app.listen(PORT, () => {
