@@ -26,11 +26,9 @@ const registerAccount = async (req, res) => {
 
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const favorites = JSON.stringify([]);
-
     await pool.query(
-      "INSERT INTO accounts (name, email, password, age, role_user, favorites) VALUES ($1, $2, $3, $4, $5, $6)",
-      [name, email, hashedPassword, age, "user", favorites]
+      "INSERT INTO accounts (name, email, password, age, role_user) VALUES ($1, $2, $3, $4, $5)",
+      [name, email, hashedPassword, age, "user"]
     );
 
     return res.send("Account registered successfully");
@@ -59,7 +57,7 @@ const loginAccount = async (req, res) => {
       return res.status(401).send("Invalid password");
     }
 
-    const { password, favorites, role_user, ...account } = user;
+    const { password, role_user, ...account } = user;
 
     // Generate token
     const token = jwt.sign(account, SECRET_KEY, {
