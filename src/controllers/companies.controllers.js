@@ -23,6 +23,7 @@ const createCompany = async (req, res) => {
 
     const hashtagsString = JSON.stringify(hashtags);
     const multimediaString = JSON.stringify(multimedia);
+    const contactsString = JSON.stringify(contacts);
 
     const result = await pool.query(
       `INSERT INTO companies (name, description, hashtags, sector, location, investment_min, investment_max, contacts, multimedia, logo)
@@ -35,7 +36,7 @@ const createCompany = async (req, res) => {
         location,
         investment_min,
         investment_max,
-        contacts,
+        contactsString,
         multimediaString,
         logo,
       ]
