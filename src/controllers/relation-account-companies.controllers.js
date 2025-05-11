@@ -75,9 +75,9 @@ const getRelationAccountCompanies = async (req, res) => {
 
 const updateRelationAccountCompanies = async (req, res) => {
   try {
-    const { account_id, company_id, newRol } = req.body;
+    const { account_id, company_id, newRole } = req.body;
 
-    if (!account_id || !company_id || !newRol) {
+    if (!account_id || !company_id || !newRole) {
       return res.status(400).send("Missing required fields");
     }
 
@@ -86,7 +86,7 @@ const updateRelationAccountCompanies = async (req, res) => {
       `UPDATE account_companies 
        SET role = $1 
        WHERE account_id = $2 AND company_id = $3`,
-      [newRol, account_id, company_id]
+      [newRole, account_id, company_id]
     );
 
     // If no rows were affected, the relation does not exist
