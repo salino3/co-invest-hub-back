@@ -2,9 +2,9 @@ const { pool } = require("../db");
 
 const registerRelationAccountCompanies = async (req, res) => {
   try {
-    const { idCreator, account_id, company_id, rol } = req.body;
+    const { idCreator, account_id, company_id, role } = req.body;
 
-    if (!account_id || !company_id || !rol || !idCreator) {
+    if (!account_id || !company_id || !role || !idCreator) {
       return res.status(400).send("Missing required fields");
     }
 
@@ -31,9 +31,9 @@ const registerRelationAccountCompanies = async (req, res) => {
 
     // Insert the new relation
     await pool.query(
-      `INSERT INTO account_companies (account_id, company_id, rol)
+      `INSERT INTO account_companies (account_id, company_id, role)
        VALUES ($1, $2, $3)`,
-      [account_id, company_id, rol]
+      [account_id, company_id, role]
     );
 
     return res.status(201).send("Relation created successfully");
@@ -81,10 +81,10 @@ const updateRelationAccountCompanies = async (req, res) => {
       return res.status(400).send("Missing required fields");
     }
 
-    // Update the rol for a specific account-company relation
+    // Update the role for a specific account-company relation
     const result = await pool.query(
       `UPDATE account_companies 
-       SET rol = $1 
+       SET role = $1 
        WHERE account_id = $2 AND company_id = $3`,
       [newRol, account_id, company_id]
     );
