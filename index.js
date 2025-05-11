@@ -35,7 +35,7 @@ app.use("/auth", routerAuth);
 app.use("/api", routerAccounts);
 app.use("/api", routerCompanies);
 app.use("/api", routerFavorites);
-app.use("/relation", routerRelationAccountCompanies);
+app.use("/api/relation", routerRelationAccountCompanies);
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
