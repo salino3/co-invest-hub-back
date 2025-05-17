@@ -54,7 +54,7 @@ const getRelationAccountCompanies = async (req, res) => {
     const { id: account_id } = req.params;
 
     const result = await pool.query(
-      `SELECT c.id, c.name 
+      `SELECT c.id, c.name, ac.role 
        FROM account_companies ac
        JOIN companies c ON ac.company_id = c.id
        WHERE ac.account_id = $1`,
@@ -64,6 +64,7 @@ const getRelationAccountCompanies = async (req, res) => {
     const companies = result.rows.map((row) => ({
       id: row.id,
       name: row.name,
+      role: row.role,
     }));
 
     return res.status(200).json(companies);
