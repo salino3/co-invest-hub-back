@@ -74,6 +74,31 @@ const getRelationAccountCompanies = async (req, res) => {
   }
 };
 
+const getRelationCompaniesWithAccounts = async (req, res) => {
+  try {
+    const { id: company_id } = req.params;
+
+    const result = await pool.query(
+      `SELECT a.id, a.name, ac.role 
+       FROM account_companies ac
+       JOIN accounts a ON ac.account_id = a.id
+       WHERE ac.company_id = $1`,
+      [company_id]
+    );
+
+    const accounts = result.rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      role: row.role,
+    }));
+
+    return res.status(200).json(accounts);
+  } catch (error) {
+    console.error("Error fetching related companies:", error);
+    return res.status(500).send("Error retrieving company relations");
+  }
+};
+
 const updateRelationAccountCompanies = async (req, res) => {
   try {
     const { account_id, company_id, newRole } = req.body;
@@ -132,6 +157,7 @@ const deleteRelationAccountCompanies = async (req, res) => {
 module.exports = {
   registerRelationAccountCompanies,
   getRelationAccountCompanies,
+  getRelationCompaniesWithAccounts,
   updateRelationAccountCompanies,
   deleteRelationAccountCompanies,
 };
