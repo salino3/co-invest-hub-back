@@ -8,9 +8,16 @@ routerRelationAccountCompanies.post(
   relationAccountCompaniesController?.registerRelationAccountCompanies
 );
 
+// Get all companies related with the account
 routerRelationAccountCompanies.get(
   "/account/companies/:id",
   relationAccountCompaniesController?.getRelationAccountCompanies
+);
+
+// Get all accounts related with the company
+routerRelationAccountCompanies.get(
+  "/company/accounts/:id",
+  relationAccountCompaniesController?.getRelationCompaniesWithAccounts
 );
 
 routerRelationAccountCompanies.patch(
