@@ -144,6 +144,11 @@ const updateCompany = async (req, res) => {
     logo,
   } = req.body;
 
+  // Check required fields
+  if (!name || !description || !sector || !location || !contacts) {
+    return res.status(400).send("Missing required fields");
+  }
+
   try {
     // Check if the company ID is provided
     if (!id) {
