@@ -133,7 +133,7 @@ const getSearchingCompanies = async (req, res) => {
   const { searching, offset } = req.body;
 
   if (!searching) {
-    return res.status(400).send("Missing required filed");
+    return res.status(400).send("Missing required field");
   }
 
   const parsedOffset = parseInt(offset, 10);
