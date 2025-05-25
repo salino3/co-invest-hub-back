@@ -11,6 +11,11 @@ routerCompanies.get("/companies/batch", companiesController?.getBatchCompanies);
 
 routerCompanies.get("/companies/:id", companiesController?.getCompanyById);
 
+routerCompanies.post(
+  "/searching/companies",
+  companiesController?.getSearchingCompanies
+);
+
 routerCompanies.put("/companies/:id", companiesController?.updateCompany);
 
 routerCompanies.delete("/companies/:id", companiesController?.deleteCompany);

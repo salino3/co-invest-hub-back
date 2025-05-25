@@ -129,6 +129,55 @@ const getCompanyById = async (req, res) => {
 };
 
 //
+const getSearchingCompanies = async (req, res) => {
+  const { searching, offset } = req.body;
+
+  if (!searching) {
+    return res.status(400).send("Missing required field");
+  }
+
+  const parsedOffset = parseInt(offset, 10);
+
+  if (isNaN(parsedOffset) || parsedOffset < 0) {
+    return res.status(400).send("Invalid offset value");
+  }
+
+  try {
+    const sql = `
+    SELECT *, 
+      (
+        CASE WHEN unaccent(LOWER(name)) LIKE unaccent(LOWER('%' || $1 || '%')) THEN 5 ELSE 0 END +
+        CASE WHEN unaccent(LOWER(sector)) LIKE unaccent(LOWER('%' || $2 || '%')) THEN 3 ELSE 0 END +
+        CASE WHEN unaccent(LOWER(CAST(hashtags AS TEXT))) LIKE unaccent(LOWER('%' || $3 || '%')) THEN 1 ELSE 0 END
+      ) AS score
+    FROM companies
+    WHERE unaccent(LOWER(name)) LIKE unaccent(LOWER('%' || $4 || '%')) 
+       OR unaccent(LOWER(sector)) LIKE unaccent(LOWER('%' || $5 || '%')) 
+       OR unaccent(LOWER(CAST(hashtags AS TEXT))) LIKE unaccent(LOWER('%' || $6 || '%'))
+    ORDER BY score DESC
+    LIMIT 30 OFFSET $7;
+  `;
+
+    const values = [
+      searching, // for score: name
+      searching, // for score: sector
+      searching, // for score: hashtags
+      searching, // for WHERE: name
+      searching, // for WHERE: sector
+      searching, // for WHERE: hashtags
+      parsedOffset,
+    ];
+
+    const result = await pool.query(sql, values);
+
+    return res.status(200).json(result.rows);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error searching company");
+  }
+};
+
+//
 const updateCompany = async (req, res) => {
   const { id } = req.params;
   const {
@@ -146,7 +195,7 @@ const updateCompany = async (req, res) => {
 
   // Check required fields
   if (!name || !description || !sector || !location || !contacts) {
-    return res.status(400).send("Missing required fields");
+    return res.status(400).send("Missing required field(s)");
   }
 
   try {
@@ -261,6 +310,7 @@ module.exports = {
   getCompanies,
   getBatchCompanies,
   getCompanyById,
+  getSearchingCompanies,
   updateCompany,
   deleteCompany,
 };
