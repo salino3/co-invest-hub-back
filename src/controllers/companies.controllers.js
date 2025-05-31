@@ -142,20 +142,22 @@ const getSearchingCompanies = async (req, res) => {
     return res.status(400).send("Invalid offset value");
   }
 
+  // Create functional indexes for 'name', 'sector' and 'hastags'
+  // create 'unaccent_immutable'
   try {
     const sql = `
-    SELECT *, 
+      SELECT *, 
       (
-        CASE WHEN unaccent(LOWER(name)) LIKE unaccent(LOWER('%' || $1 || '%')) THEN 5 ELSE 0 END +
-        CASE WHEN unaccent(LOWER(sector)) LIKE unaccent(LOWER('%' || $2 || '%')) THEN 3 ELSE 0 END +
-        CASE WHEN unaccent(LOWER(CAST(hashtags AS TEXT))) LIKE unaccent(LOWER('%' || $3 || '%')) THEN 1 ELSE 0 END
+        CASE WHEN unaccent_immutable(name) ILIKE unaccent_immutable('%' || $1 || '%') THEN 5 ELSE 0 END +
+        CASE WHEN unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $2 || '%') THEN 3 ELSE 0 END +
+        CASE WHEN unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $3 || '%') THEN 1 ELSE 0 END
       ) AS score
-    FROM companies
-    WHERE unaccent(LOWER(name)) LIKE unaccent(LOWER('%' || $4 || '%')) 
-       OR unaccent(LOWER(sector)) LIKE unaccent(LOWER('%' || $5 || '%')) 
-       OR unaccent(LOWER(CAST(hashtags AS TEXT))) LIKE unaccent(LOWER('%' || $6 || '%'))
-    ORDER BY score DESC
-    LIMIT 30 OFFSET $7;
+      FROM companies
+      WHERE unaccent_immutable(name) ILIKE unaccent_immutable('%' || $4 || '%')
+         OR unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $5 || '%')
+         OR unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $6 || '%')
+      ORDER BY score DESC
+      LIMIT 30 OFFSET $7;
   `;
 
     const values = [
