@@ -289,12 +289,15 @@ const deleteCompany = async (req, res) => {
       return res.status(400).send("Invalid company ID.");
     }
 
-    const deleteQuery = `
-        DELETE FROM companies 
-        WHERE id = $1
-      `;
+    // 1. Delete related rows from 'account_companies'
+    await pool.query(`DELETE FROM account_companies WHERE company_id = $1`, [
+      parsedId,
+    ]);
 
-    const result = await pool.query(deleteQuery, [parsedId]);
+    // 2. Then delete the company
+    const result = await pool.query(`DELETE FROM companies WHERE id = $1`, [
+      parsedId,
+    ]);
 
     if (result.rowCount === 0) {
       return res.status(404).send("Company not found.");
