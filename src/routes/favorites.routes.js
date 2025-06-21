@@ -4,7 +4,11 @@ const { verifyJWT } = require("../middleware/verify-token");
 
 const routerFavorites = express.Router();
 
-routerFavorites.post("/favorites", favoritesController?.createFavorite);
+routerFavorites.post(
+  "/favorites",
+  verifyJWT("", "account_id"),
+  favoritesController?.createFavorite
+);
 
 routerFavorites.get(
   "/favorites/:account_id",
