@@ -62,7 +62,8 @@ const getBatchAccounts = async (req, res) => {
 };
 
 const getAccountsById = async (req, res) => {
-  const { id } = req.params;
+  // const { id } = req.params;
+  const { id } = req;
 
   try {
     const parsedId = parseInt(id, 10);
@@ -88,8 +89,8 @@ const getAccountsById = async (req, res) => {
 
 //
 const updateAccount = async (req, res) => {
-  // const {id} = req;
-  const { id, emailParams } = req.params;
+  const { id } = req;
+  const { emailParams } = req.params;
   const { name, email, age } = req.body;
 
   try {
@@ -164,7 +165,8 @@ const updateAccount = async (req, res) => {
 };
 
 const softDeleteAccount = async (req, res) => {
-  const { id } = req.params;
+  // const { id } = req.params;
+  const { id } = req;
 
   try {
     const parsedId = parseInt(id, 10);
