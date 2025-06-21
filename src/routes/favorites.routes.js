@@ -11,8 +11,8 @@ routerFavorites.post(
 );
 
 routerFavorites.get(
-  "/favorites/:account_id",
-  verifyJWT("account_id"),
+  "/favorites/:id",
+  verifyJWT("id"),
   favoritesController?.getFavorites
 );
 

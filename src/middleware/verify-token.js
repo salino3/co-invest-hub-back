@@ -2,7 +2,6 @@ const jwt = require("jsonwebtoken");
 // node-mysql-jsonwebtoken-02
 const verifyJWT = (key = "", bodyParam = "") => {
   return (req, res, next) => {
-    console.log("clog1", req.params);
     const endToken = req.headers["end_token"];
     if (!endToken) {
       return res
@@ -31,11 +30,9 @@ const verifyJWT = (key = "", bodyParam = "") => {
         next();
       } else if (bodyParam) {
         const paramsBody = req.body[bodyParam];
-        console.log("clog2", paramsBody);
         if (decoded.id != paramsBody) {
           return res.status(401).send({ message: "Unauthorized." });
         }
-        req[key] = decoded[key];
         next();
       } else {
         if (decoded) {
