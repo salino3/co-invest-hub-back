@@ -1,5 +1,6 @@
 const express = require("express");
 const companiesController = require("../controllers/companies.controllers");
+const { verifyJWT } = require("../middleware/verify-token");
 
 const routerCompanies = express.Router();
 
@@ -16,8 +17,16 @@ routerCompanies.post(
   companiesController?.getSearchingCompanies
 );
 
-routerCompanies.put("/companies/:id", companiesController?.updateCompany);
+routerCompanies.put(
+  "/companies/:id",
+  verifyJWT("id"),
+  companiesController?.updateCompany
+);
 
-routerCompanies.delete("/companies/:id", companiesController?.deleteCompany);
+routerCompanies.delete(
+  "/companies/:id",
+  verifyJWT("id"),
+  companiesController?.deleteCompany
+);
 
 module.exports = routerCompanies;

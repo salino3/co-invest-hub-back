@@ -33,9 +33,10 @@ const createFavorite = async (req, res) => {
 };
 
 const getFavorites = async (req, res) => {
-  const { account_id } = req.params;
+  // const { account_id } = req.params;
+  const { id } = req;
 
-  if (!account_id) {
+  if (!id) {
     return res.status(400).json({ message: "account_id is required" });
   }
 
@@ -46,7 +47,7 @@ const getFavorites = async (req, res) => {
         WHERE account_id = $1;
       `;
 
-    const result = await pool.query(query, [account_id]);
+    const result = await pool.query(query, [id]);
 
     res.status(200).json(result.rows[0].favorites || []);
   } catch (error) {

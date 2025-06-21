@@ -1,10 +1,12 @@
 const express = require("express");
 const relationAccountCompaniesController = require("../controllers/relation-account-companies.controllers");
+const { verifyJWT } = require("../middleware/verify-token");
 
 const routerRelationAccountCompanies = express.Router();
 
 routerRelationAccountCompanies.post(
   "/account/companies",
+  verifyJWT("", "idCreator"),
   relationAccountCompaniesController?.registerRelationAccountCompanies
 );
 
@@ -22,11 +24,13 @@ routerRelationAccountCompanies.get(
 
 routerRelationAccountCompanies.patch(
   "/account/companies",
+  verifyJWT("", "account_id"),
   relationAccountCompaniesController.updateRelationAccountCompanies
 );
 
 routerRelationAccountCompanies.delete(
   "/account/companies",
+  verifyJWT("", "account_id"),
   relationAccountCompaniesController.deleteRelationAccountCompanies
 );
 
