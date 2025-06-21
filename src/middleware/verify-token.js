@@ -31,8 +31,8 @@ const verifyJWT = (key = "") => {
       } else {
         if (decoded) {
           const userId = req.params.userId;
-          const comapnyId = req.params.comapnyId;
-          if (userId == decoded?.id || comapnyId == decoded?.id) {
+          const comapanyId = req.params.comapanyId;
+          if (userId == decoded?.id || comapanyId == decoded?.id) {
             next();
           } else {
             return res
