@@ -24,7 +24,7 @@ routerCompanies.put(
 );
 
 routerCompanies.delete(
-  "/companies/:id",
+  "/companies/:id/:idCompany",
   verifyJWT("id"),
   companiesController?.deleteCompany
 );
