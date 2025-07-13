@@ -281,10 +281,10 @@ const updateCompany = async (req, res) => {
 
 //
 const deleteCompany = async (req, res) => {
-  const { id } = req.params;
+  const { idCompany } = req.params;
 
   try {
-    const parsedId = parseInt(id, 10);
+    const parsedId = parseInt(idCompany, 10);
     if (isNaN(parsedId)) {
       return res.status(400).send("Invalid company ID.");
     }
