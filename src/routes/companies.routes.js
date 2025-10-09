@@ -18,8 +18,8 @@ routerCompanies.post(
 );
 
 routerCompanies.put(
-  "/companies/:id",
-  verifyJWT("id"),
+  "/companies/:id/:idAccount",
+  verifyJWT("idAccount"),
   companiesController?.updateCompany
 );
 
