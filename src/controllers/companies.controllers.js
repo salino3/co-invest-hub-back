@@ -137,41 +137,78 @@ const getSearchingCompanies = async (req, res) => {
   }
 
   const parsedOffset = parseInt(offset, 10);
-
   if (isNaN(parsedOffset) || parsedOffset < 0) {
     return res.status(400).send("Invalid offset value");
   }
 
-  // Create functional indexes for 'name', 'sector' and 'hastags'
-  // create 'unaccent_immutable'
   try {
+    // 1. Split the string by spaces or comma and clean up whitespace
+    // Example: "Málaga, IT" becomes ["Málaga", "IT"]
+    const keywords = searching
+      .split(/[\s,]+/) // Split by one or more spaces OR commas
+      .map((term) => term.trim())
+      .filter((term) => term.length > 0);
+
+    if (keywords.length === 0) {
+      return res.status(400).send("Invalid search terms");
+    }
+
+    // 2. Dynamic Query Construction
+    // We need to build the SQL string and the values array dynamically based on how many keywords there are.
+
+    const values = [];
+    let scoreCalculationParts = [];
+    let whereConditions = [];
+
+    // We start iterating. $1, $2, etc. depends on the index.
+    keywords.forEach((word, index) => {
+      // Postgres parameters start at $1, so we use index + 1
+      const paramIndex = index + 1;
+
+      values.push(word); // Add the actual word to the values array
+
+      // A. Build the Score Logic (Accumulative)
+      // for every word, we check Name (5), Sector (3), and Hashtags (1)
+      // add these blocks together with '+' so points accumulate.
+      const scorePart = `
+            (CASE WHEN unaccent_immutable(name) ILIKE unaccent_immutable('%' || $${paramIndex} || '%') THEN 5 ELSE 0 END) +
+            (CASE WHEN unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $${paramIndex} || '%') THEN 3 ELSE 0 END) +
+            (CASE WHEN unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $${paramIndex} || '%') THEN 1 ELSE 0 END)
+        `;
+      scoreCalculationParts.push(scorePart);
+
+      // B. Build the WHERE Logic
+      // to return the row if it matches ANY of the keywords in ANY of the columns.
+      const wherePart = `
+            unaccent_immutable(name) ILIKE unaccent_immutable('%' || $${paramIndex} || '%') OR
+            unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $${paramIndex} || '%') OR
+            unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $${paramIndex} || '%')
+        `;
+      whereConditions.push(wherePart);
+    });
+
+    // 3. Combine the parts into the final SQL
+    // join the score parts with '+' to sum them up.
+    // join the where parts with 'OR' so if *any* keyword matches, we get the result.
+
+    const finalScoreSql = scoreCalculationParts.join(" + ");
+    const finalWhereSql = whereConditions.join(" OR ");
+
+    // The offset parameter comes last. If we have 2 keywords, indices are $1, $2. Offset is $3.
+    const offsetParamIndex = keywords.length + 1;
+    values.push(parsedOffset);
+
     const sql = `
       SELECT *, 
-      (
-        CASE WHEN unaccent_immutable(name) ILIKE unaccent_immutable('%' || $1 || '%') THEN 5 ELSE 0 END +
-        CASE WHEN unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $2 || '%') THEN 3 ELSE 0 END +
-        CASE WHEN unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $3 || '%') THEN 1 ELSE 0 END
-      ) AS score
+      (${finalScoreSql}) AS score
       FROM companies
-      WHERE unaccent_immutable(name) ILIKE unaccent_immutable('%' || $4 || '%')
-         OR unaccent_immutable(sector) ILIKE unaccent_immutable('%' || $5 || '%')
-         OR unaccent_immutable(CAST(hashtags AS TEXT)) ILIKE unaccent_immutable('%' || $6 || '%')
+      WHERE ${finalWhereSql}
       ORDER BY score DESC
-      LIMIT 30 OFFSET $7;
-  `;
-
-    const values = [
-      searching, // for score: name
-      searching, // for score: sector
-      searching, // for score: hashtags
-      searching, // for WHERE: name
-      searching, // for WHERE: sector
-      searching, // for WHERE: hashtags
-      parsedOffset,
-    ];
+      LIMIT 30 OFFSET $${offsetParamIndex};
+    `;
 
     const result = await pool.query(sql, values);
-
+    console.log("Clog1", sql);
     return res.status(200).json(result.rows);
   } catch (error) {
     console.error(error);
