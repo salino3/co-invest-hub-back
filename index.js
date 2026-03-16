@@ -16,6 +16,7 @@ const app = express();
 app.use(morgan("dev"));
 app.use(cookieParser());
 app.use(express.json({ limit: "50mb" }));
+//  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 app.use(
   cors({
@@ -24,7 +25,7 @@ app.use(
         ? process.env.FRONT_END_PORT
         : "http://localhost:5500",
     credentials: true,
-  })
+  }),
 );
 
 // For static files (images, CSS, etc.)
