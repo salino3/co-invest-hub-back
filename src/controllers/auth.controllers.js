@@ -82,32 +82,39 @@ const loginAccount = async (req, res) => {
   }
 };
 
+//
 const refreshToken = async (req, res) => {
-  const authHeader = req.headers.authorization;
+  // 1. Use your custom logic to find the cookie name
+  const endToken = req.headers["end_token"];
+  if (!endToken) return res.status(400).send("end_token header missing");
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "No token provided" });
-  }
+  const cookieName = `auth_token_${endToken}`;
+  const token = req.cookies[cookieName];
 
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res.status(401).json({ message: "Token not found" });
-  }
+  if (!token)
+    return res.status(401).json({ message: "Token not found in cookies" });
 
   try {
+    // 2. Verify the old token
     const decoded = jwt.verify(token, SECRET_KEY);
-    const user = decoded;
 
-    const newToken = jwt.sign(user, SECRET_KEY, {
-      expiresIn: "1h",
+    // Remove 'iat' and 'exp' from decoded so jwt.sign creates new ones
+    const { iat, exp, ...userData } = decoded;
+
+    // 3. Create new token
+    const newToken = jwt.sign(userData, SECRET_KEY, { expiresIn: "1h" });
+
+    // 4. Overwrite the old cookie with the new token
+    res.cookie(cookieName, newToken, {
+      httpOnly: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
+      expires: new Date(Date.now() + 3600 * 1000),
     });
-    return res.json({ token: newToken });
+
+    return res.json({ message: "Token refreshed", user: userData });
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ message: "Token expired" });
-    }
-    return res.status(403).json({ message: "Invalid token" });
+    return res.status(403).json({ message: "Invalid or expired token" });
   }
 };
 
