@@ -1,0 +1,15 @@
+# SECURITY & SCOPE RULES
+
+- You are strictly FORBIDDEN from creating, modifying, or deleting any file or folder outside the current project root directory.
+- Do not execute any terminal command that targets paths outside of the project root.
+- If a task requires accessing external files, you must stop and ask for explicit confirmation for READING ONLY and explaining why it's necessary. Other actions are impossible.
+- Never use absolute paths; always use relative paths starting from the project root.
+
+## BACKEND RULES (Inside /back)
+
+- Stack: Node.js + Express.
+- Architecture: Controller-Service-Repository pattern.
+
+## GENERAL CODING RULES
+
+- All code, file names, comments, and documentation must be in ENGLISH.
