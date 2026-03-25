@@ -59,16 +59,15 @@ const loginAccount = async (req, res) => {
 
     const { password, role_user, ...account } = user;
 
-    // Generate token
+    //  Generate the token
     const token = jwt.sign(account, SECRET_KEY, {
       expiresIn: "1h",
     });
 
-    const generateRandomNumber = () => {
-      return Math.floor(1000 + Math.random() * 9000);
-    };
+    const endTokenValue = Math.floor(1000 + Math.random() * 9000);
 
-    res.cookie("auth_token_" + generateRandomNumber(), token, {
+    res.cookie("auth_token_" + endTokenValue, token, {
+      // In production, JS cannot read this cookie (Security)
       httpOnly: process.env.NODE_ENV === "production",
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
@@ -76,6 +75,10 @@ const loginAccount = async (req, res) => {
     });
 
     return res.json(account);
+    // return res.json({
+    //   ...account,
+    //   end_token: endTokenValue,
+    // });
   } catch (err) {
     console.error(err);
     return res.status(500).send("Error during login");
