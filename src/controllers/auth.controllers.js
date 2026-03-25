@@ -10,7 +10,7 @@ const registerAccount = async (req, res) => {
   try {
     const result = await pool.query(
       "SELECT email FROM accounts WHERE email = $1",
-      [email]
+      [email],
     );
 
     if (result.rows.length > 0) {
@@ -28,7 +28,7 @@ const registerAccount = async (req, res) => {
 
     await pool.query(
       "INSERT INTO accounts (name, email, password, age, role_user) VALUES ($1, $2, $3, $4, $5)",
-      [name, email, hashedPassword, age, "user"]
+      [name, email, hashedPassword, age, "user"],
     );
 
     return res.send("Account registered successfully");
@@ -82,4 +82,33 @@ const loginAccount = async (req, res) => {
   }
 };
 
-module.exports = { registerAccount, loginAccount };
+const refreshToken = async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ message: "Token not found" });
+  }
+
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY);
+    const user = decoded;
+
+    const newToken = jwt.sign(user, SECRET_KEY, {
+      expiresIn: "1h",
+    });
+    return res.json({ token: newToken });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Token expired" });
+    }
+    return res.status(403).json({ message: "Invalid token" });
+  }
+};
+
+module.exports = { registerAccount, loginAccount, refreshToken };
