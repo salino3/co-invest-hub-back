@@ -3,6 +3,11 @@ const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const {
+  redisRateLimiter,
+  limiter,
+  customRateLimiter,
+} = require("./src/middleware/limiters");
 const routerAuth = require("./src/routes/auth.routes");
 const routerAccounts = require("./src/routes/accounts.routes");
 const routerCompanies = require("./src/routes/companies.routes");
@@ -11,6 +16,13 @@ const routerFavorites = require("./src/routes/favorites.routes");
 const { PORT } = require("./src/config");
 
 const app = express();
+
+// Apply the custom rate limiter
+app.use(customRateLimiter);
+app.use(redisRateLimiter);
+
+// Apply the rate limiter to all requests
+app.use(limiter);
 
 // 'morgan' Library to check API call, some information, milliseconds also
 app.use(morgan("dev"));
