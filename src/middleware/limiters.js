@@ -35,8 +35,8 @@ setInterval(
 const customRateLimiter = (req, res, next) => {
   const ip = req.ip;
   const now = Date.now();
-  const windowTime = 60 * 60 * 1000; // 1 hour window
-  const maxRequests = 100;
+  const windowTime = 1000; // 1 seconds
+  const maxRequests = 10;
 
   if (!requestCounts[ip]) {
     // New user: start the counter and record the start of the window
@@ -45,11 +45,11 @@ const customRateLimiter = (req, res, next) => {
     const timeInWindow = now - requestCounts[ip].firstRequest;
 
     if (timeInWindow < windowTime) {
-      // Still in the same hour window
+      // Still in the same time window
       requestCounts[ip].count += 1;
-      requestCounts[ip].lastRequest = now; // Update this for our 24h cleanup
+      requestCounts[ip].lastRequest = now; // Update this for 1 second cleanup
     } else {
-      // Hour is up! Reset for a new hour
+      // Time is up! Reset
       requestCounts[ip] = { count: 1, firstRequest: now, lastRequest: now };
     }
   }
