@@ -3,6 +3,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+const rateLimit = require("express-rate-limit");
 const routerAuth = require("./src/routes/auth.routes");
 const routerAccounts = require("./src/routes/accounts.routes");
 const routerCompanies = require("./src/routes/companies.routes");
@@ -11,6 +12,16 @@ const routerFavorites = require("./src/routes/favorites.routes");
 const { PORT } = require("./src/config");
 
 const app = express();
+
+// Set up rate limiter: maximum of 100 requests per 15 minutes per IP
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 3, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  message: "Too many requests from this IP, please try again after 15 minutes",
+});
+
+// Apply the rate limiter to all requests
+app.use(limiter);
 
 // 'morgan' Library to check API call, some information, milliseconds also
 app.use(morgan("dev"));
