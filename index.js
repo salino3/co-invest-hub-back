@@ -3,7 +3,11 @@ const morgan = require("morgan");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const path = require("path");
-const { limiter, customRateLimiter } = require("./src/middleware/limiters");
+const {
+  redisRateLimiter,
+  limiter,
+  customRateLimiter,
+} = require("./src/middleware/limiters");
 const routerAuth = require("./src/routes/auth.routes");
 const routerAccounts = require("./src/routes/accounts.routes");
 const routerCompanies = require("./src/routes/companies.routes");
@@ -15,6 +19,7 @@ const app = express();
 
 // Apply the custom rate limiter
 app.use(customRateLimiter);
+app.use(redisRateLimiter);
 
 // Apply the rate limiter to all requests
 app.use(limiter);
