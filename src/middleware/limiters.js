@@ -1,38 +1,63 @@
+const { createClient } = require("redis");
 const rateLimit = require("express-rate-limit");
-const Redis = require("ioredis");
 
-// Connect to Redis (default Redis uses localhost:6379)
-const redis = new Redis();
+const redisClient = createClient({
+  socket: {
+    host: "localhost",
+    port: 6379,
+    connectTimeout: 1000, // Don't wait forever
+  },
+});
+
+// 2. Handle errors so the process doesn't die
+redisClient.on("error", (err) => {
+  // We leave this empty to keep the console clean
+});
+
+// 3. Connect (Async)
+redisClient.connect().catch(() => {
+  console.log(
+    "⚠️ Redis Server not detected on localhost. Daily limit skipped.",
+  );
+});
 
 const redisRateLimiter = async (req, res, next) => {
+  // FAIL-SAFE: If Redis server is not running, just skip to next()
+  if (!redisClient.isOpen || !redisClient.isReady) {
+    return next();
+  }
+
   const ip = req.ip;
   const key = `rate_limit:${ip}`;
   const DAILY_LIMIT = 3000;
-  const TWENTY_FOUR_HOURS = 24 * 60 * 60; // Redis uses seconds
 
   try {
-    // 1. Increment the count for this IP
-    const currentCount = await redis.incr(key);
+    const currentCount = await redisClient.incr(key);
 
-    // 2. If it's the first time this IP is seen, set the 24h expiration
+    // Set expiration only on the first hit
     if (currentCount === 1) {
-      await redis.expire(key, TWENTY_FOUR_HOURS);
+      await redisClient.expire(key, 86400); // 24 hours in seconds
     }
 
-    // 3. Check the limit
+    // --- DEBUG CONSOLE LOG ---
+    const ttl = await redisClient.ttl(key);
+    console.log(
+      `[Redis] IP: ${ip} | Hits: ${currentCount}/3000 | Resets in: ${ttl}s`,
+    );
+
     if (currentCount > DAILY_LIMIT) {
       return res.status(429).json({
         message: "You have reached your limit of 3000 requests per day.",
       });
     }
 
-    // Update 'lastRequest' isn't needed here because EXPIRE handles the cleanup!
     next();
   } catch (err) {
-    console.error("Redis Error:", err);
-    next(); // Move on if Redis fails so you don't block users
+    next();
   }
 };
+
+// -------------------
 
 //* Set up rate limiter: maximum of 10000 requests per 15 minutes per IP
 const limiter = rateLimit({
@@ -96,17 +121,5 @@ const customRateLimiter = (req, res, next) => {
 
   next();
 };
-
-// This runs once when the file is loaded (at server start)
-if (process.env.NODE_ENV !== "production") {
-  redis
-    .flushall()
-    .then(() => {
-      console.log("?? Redis has been cleared for development mode.");
-    })
-    .catch((err) => {
-      console.error("?? Failed to clear Redis:", err);
-    });
-}
 
 module.exports = { redisRateLimiter, limiter, customRateLimiter };
