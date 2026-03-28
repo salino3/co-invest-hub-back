@@ -5,21 +5,11 @@ const redisClient = createClient({
   socket: {
     host: "localhost",
     port: 6379,
-    connectTimeout: 1000, // Don't wait forever
+    connectTimeout: 1000,
   },
 });
 
-// 2. Handle errors so the process doesn't die
-redisClient.on("error", (err) => {
-  // We leave this empty to keep the console clean
-});
-
-// 3. Connect (Async)
-redisClient.connect().catch(() => {
-  console.log(
-    "⚠️ Redis Server not detected on localhost. Daily limit skipped.",
-  );
-});
+redisClient.on("error", () => {});
 
 const redisRateLimiter = async (req, res, next) => {
   // FAIL-SAFE: If Redis server is not running, just skip to next()
@@ -59,10 +49,10 @@ const redisRateLimiter = async (req, res, next) => {
 
 // -------------------
 
-//* Set up rate limiter: maximum of 10000 requests per 15 minutes per IP
+//* Set up rate limiter: maximum of 10000 requests
 const limiter = rateLimit({
   windowMs: 24 * 60 * 60 * 1000, // 24 hours
-  max: 10000, // Limit each IP to 10000 requests per `window` (here, per 15 minutes)
+  max: 10000, // Limit each IP to 10000 requests per `window`
   message: "Too many requests from this IP, please try again later",
 });
 
@@ -121,5 +111,20 @@ const customRateLimiter = (req, res, next) => {
 
   next();
 };
+
+//
+redisClient
+  .connect()
+  .then(async () => {
+    console.log("✅ Redis Connected on localhost (via Docker).");
+
+    await redisClient.flushAll();
+    console.log("🧹 Redis RAM has been cleared for development.");
+  })
+  .catch((err) => {
+    console.log(
+      "⚠️ Redis Server not detected on localhost. Daily limit skipped.",
+    );
+  });
 
 module.exports = { redisRateLimiter, limiter, customRateLimiter };
