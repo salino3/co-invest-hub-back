@@ -1,9 +1,10 @@
 const { createClient } = require("redis");
 const rateLimit = require("express-rate-limit");
 
+// docker run -d --name redis-practice -p 6379:6379 redis:latest
 const redisClient = createClient({
   socket: {
-    host: "localhost",
+    host: "127.0.0.1",
     port: 6379,
     connectTimeout: 1000,
   },
@@ -12,37 +13,43 @@ const redisClient = createClient({
 redisClient.on("error", () => {});
 
 const redisRateLimiter = async (req, res, next) => {
-  // FAIL-SAFE: If Redis server is not running, just skip to next()
-  if (!redisClient.isOpen || !redisClient.isReady) {
+  // Check if client is connected
+  if (!redisClient.isOpen) {
+    console.log("⚠️ Redis connection closed. Skipping...");
     return next();
   }
 
-  const ip = req.ip;
+  // Clean up the IP address (converts ::1 to 127.0.0.1 for cleaner keys)
+  const ip = req.ip.replace("::ffff:", "").replace("::1", "127.0.0.1");
   const key = `rate_limit:${ip}`;
   const DAILY_LIMIT = 3000;
 
+  console.log("🚀 Processing Rate Limit for:", key);
+
   try {
-    const currentCount = await redisClient.incr(key);
+    // Create the multi-chain
+    const multi = redisClient.multi();
+    multi.incr(key);
+    multi.expire(key, 86400, "NX");
 
-    // Set expiration only on the first hit
-    if (currentCount === 1) {
-      await redisClient.expire(key, 86400); // 24 hours in seconds
-    }
+    // Execute the chain
+    const results = await multi.exec();
 
-    // --- DEBUG CONSOLE LOG ---
-    const ttl = await redisClient.ttl(key);
-    console.log(
-      `[Redis] IP: ${ip} | Hits: ${currentCount}/3000 | Resets in: ${ttl}s`,
-    );
+    // results will be an array: [newCount, expireStatus]
+    const currentCount = results[0];
+
+    console.log(`clog: IP ${ip} - Count: ${currentCount}`);
 
     if (currentCount > DAILY_LIMIT) {
       return res.status(429).json({
-        message: "You have reached your limit of 3000 requests per day.",
+        message: `IP ${ip} has reached the limit of 3000 requests per day.`,
       });
     }
 
     next();
   } catch (err) {
+    console.error("❌ Redis Middleware Error:", err);
+    // If Redis fails, we still want the user to see the website
     next();
   }
 };
