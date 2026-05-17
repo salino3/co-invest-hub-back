@@ -19,7 +19,7 @@ const app = express();
 
 // Apply the custom rate limiter
 app.use(customRateLimiter);
-app.use(redisRateLimiter);
+// app.use(redisRateLimiter);
 
 // Apply the rate limiter to all requests
 app.use(limiter);
