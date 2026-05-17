@@ -2,8 +2,9 @@ const jwt = require("jsonwebtoken");
 // node-mysql-jsonwebtoken-02
 const verifyJWT = (key = "", bodyParam = "") => {
   return (req, res, next) => {
-    const endToken = req.headers["end_token"];
-    if (!endToken) {
+    const endToken = req.headers["end_token"] ?? "";
+
+    if (process.env.NODE_ENV !== "production" && !endToken) {
       return res
         .status(400)
         .send({ message: "Numbers (cookie identifier) is missing." });
