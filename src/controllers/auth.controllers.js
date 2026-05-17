@@ -66,19 +66,28 @@ const loginAccount = async (req, res) => {
 
     const endTokenValue = Math.floor(1000 + Math.random() * 9000);
 
-    res.cookie("auth_token_" + endTokenValue, token, {
-      // In production, JS cannot read this cookie (Security)
-      httpOnly: process.env.NODE_ENV === "production",
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
-      expires: new Date(Date.now() + 3600 * 1000),
-    });
+    res.cookie(
+      "auth_token_" + process.env.NODE_ENV === "production"
+        ? ""
+        : endTokenValue,
+      token,
+      {
+        // In production, JS cannot read this cookie (Security)
+        httpOnly: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "None" : "Strict",
+        expires: new Date(Date.now() + 3600 * 1000),
+      },
+    );
 
-    return res.json(account);
-    // return res.json({
-    //   ...account,
-    //   end_token: endTokenValue,
-    // });
+    if (process.env.NODE_ENV === "production") {
+      return res.json({
+        ...account,
+        token: token,
+      });
+    } else {
+      return res.json(account);
+    }
   } catch (err) {
     console.error(err);
     return res.status(500).send("Error during login");
